@@ -1,0 +1,43 @@
+---
+title: "MyLeafletApp"
+author: "TI"
+date: "2022-06-17"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Data
+The data used is from: https://gist.github.com/Ewiseman/b251e5eaf70ca52a4b9b10dce9e635a4.
+I created a new variable called `diff` (Difficulty) that is based on 3 quantiles of the percentage of black acres on the resort. If the resort is in the top quantile, it is a "black" difficulty, middle is "blue", and bottom is "green".
+```{r, message=FALSE}
+library(leaflet)
+library(readr)
+library(Hmisc)
+
+ski_resorts <- read_csv("./skiresorts.csv") %>% na.omit(.)
+cuts <- cut2(ski_resorts$black_percent, g = 3)
+ski_resorts$diff <- cuts
+levels(ski_resorts$diff) <- c("green", "blue", "black")
+head(ski_resorts)
+```
+
+
+# Ski Resorts of the United States
+The size of the circle represents the overall footprint of the resort, scaled from the original unit of measure (Acres)). Clicking on the circle will bring up the resort name.
+```{r, message = FALSE, fig.align='center'}
+ski_resorts %>%
+    leaflet() %>% 
+    addTiles() %>%
+    addCircleMarkers(
+        weight = 3, 
+        radius = ski_resorts$acres / 750, 
+        popup = ski_resorts$resort_name,
+        color = ski_resorts$diff
+    )
+
+```
+
+*There's a few errors in the original data set! (Ski resort in the south pacific and off the coast of Panama??)*
